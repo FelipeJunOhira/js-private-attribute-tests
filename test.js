@@ -352,4 +352,45 @@ suite(function() {
 
     notHasProperty(obj, 'private');
   });
+
+  test('Obj public property can be modified by a method', function() {
+    var b = new ClassBuilder();
+
+    b.public.secret = 123;
+
+    b.private.setSecretPrivately = function(secret) {
+      this.secret = secret;
+    }
+
+    b.public.setSecret = function(secret) {
+      this.setSecretPrivately(secret);
+    };
+
+    var Constructor = b.build();
+    var obj = new Constructor();
+
+    obj.setSecret(321);
+    equal(321, obj.secret);
+  });
+
+  test('Obj public property can be modified direct and reflect on internal change', function() {
+    var b = new ClassBuilder();
+
+    b.public.secret = 123;
+
+    b.private.getSecretPrivately = function() {
+      return this.secret;
+    }
+
+    b.public.getSecret = function() {
+      return this.getSecretPrivately();
+    };
+
+    var Constructor = b.build();
+    var obj = new Constructor();
+
+    obj.secret = 321
+
+    equal(321, obj.getSecret());
+  });
 });
