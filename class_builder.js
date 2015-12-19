@@ -8,12 +8,12 @@ module.exports = (function() {
 
   ClassBuilder.prototype.build = function() {
     this._setPrivateHierarchy();
-    return this._buildContructor();;
+    return this._buildContructor();
   };
 
   ClassBuilder.prototype._setPrivateHierarchy = function() {
     this.private.__proto__ = this.public;
-  }
+  };
 
   ClassBuilder.prototype._buildImplementationObject = function() {
       var implementation = {};
@@ -26,18 +26,20 @@ module.exports = (function() {
     var customConstructor = this.constructor;
 
     return function() {
-      delegateAllCallsToInternalImplementation.call(this, builder);
+      _delegateAllCallsToInternalImplementation.call(this, builder);
       customConstructor.apply(this, arguments);
     };
   };
 
   ClassBuilder.prototype.constructor = DEFAULT_CONSTRUCTOR;
 
-  function delegateAllCallsToInternalImplementation(builder) {
+  function _delegateAllCallsToInternalImplementation(builder) {
     var self = this;
     var implementation = builder._buildImplementationObject();
 
-    function delegateCallToImplementation(key, value) {
+    _forEachAttribute(builder.public, _delegateCallToImplementationObject);
+
+    function _delegateCallToImplementationObject(key, value) {
       if (typeof value === 'function') {
         self[key] = function() {
           return implementation[key].apply(implementation, arguments);
@@ -50,12 +52,10 @@ module.exports = (function() {
           configurable: false
         });
       }
-    }
-
-    forEachAttribute(builder.public, delegateCallToImplementation);
+    };
   }
 
-  function forEachAttribute(obj, fn) {
+  function _forEachAttribute(obj, fn) {
     for (var key in obj) {
       fn(key, obj[key]);
     }
