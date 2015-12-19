@@ -43,7 +43,12 @@ module.exports = (function() {
           return implementation[key].apply(implementation, arguments);
         };
       } else {
-        self[key] = value;
+        Object.defineProperty(self, key, {
+          get: function() { return implementation[key]; },
+          set: function(value) { implementation[key] = value; },
+          enumerable: true,
+          configurable: false
+        });
       }
     }
 
