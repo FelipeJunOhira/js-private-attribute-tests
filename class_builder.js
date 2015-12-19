@@ -23,7 +23,7 @@ module.exports = (function() {
 
   ClassBuilder.prototype._buildContructor = function() {
     var builder = this;
-    var customConstructor = this._getCustomConstructor();
+    var customConstructor = this.constructor;
 
     return function() {
       delegateAllCallsToInternalImplementation.call(this, builder);
@@ -31,9 +31,7 @@ module.exports = (function() {
     };
   };
 
-  ClassBuilder.prototype._getCustomConstructor = function() {
-    return this.constructor || DEFAULT_CONSTRUCTOR;
-  };
+  ClassBuilder.prototype.constructor = DEFAULT_CONSTRUCTOR;
 
   function delegateAllCallsToInternalImplementation(builder) {
     var self = this;
