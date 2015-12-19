@@ -38,7 +38,7 @@ module.exports = (function() {
     var implementation = builder._buildImplementationObject();
 
     function delegateCallToImplementation(key, value) {
-      if (value instanceof Function) {
+      if (typeof value === 'function') {
         self[key] = function() {
           return implementation[key].apply(implementation, arguments);
         };
