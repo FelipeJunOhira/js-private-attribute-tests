@@ -329,5 +329,27 @@ suite(function() {
 
     equal(undefined, obj.internalCounter);
     equal(123, obj.getInternalCounter());
-  })
+  });
+
+  test('Obj has no direct references to the public object', function() {
+    var b = new ClassBuilder();
+
+    b.public.internalCounter = 0;
+
+    var Constructor = b.build();
+    var obj = new Constructor();
+
+    notHasProperty(obj, 'public');
+  });
+
+  test('Obj has no direct references to the private object', function() {
+    var b = new ClassBuilder();
+
+    b.private.internalCounter = 0;
+
+    var Constructor = b.build();
+    var obj = new Constructor();
+
+    notHasProperty(obj, 'private');
+  });
 });
