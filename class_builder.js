@@ -3,25 +3,10 @@ module.exports = (function() {
 
   function ClassBuilder() {
     this.public = {};
-    this.private = {};
+    this.private = Object.create(this.public);
   }
 
   ClassBuilder.prototype.build = function() {
-    this._setPrivateHierarchy();
-    return this._buildContructor();
-  };
-
-  ClassBuilder.prototype._setPrivateHierarchy = function() {
-    this.private.__proto__ = this.public;
-  };
-
-  ClassBuilder.prototype._buildImplementationObject = function() {
-      var implementation = {};
-      implementation.__proto__ = this.private;
-      return implementation;
-  };
-
-  ClassBuilder.prototype._buildContructor = function() {
     var builder = this;
     var customConstructor = this.constructor;
 
@@ -31,31 +16,36 @@ module.exports = (function() {
     };
   };
 
+  ClassBuilder.prototype.buildImplementationObject = function() {
+      return Object.create(this.private);
+  };
+
   ClassBuilder.prototype.constructor = DEFAULT_CONSTRUCTOR;
 
   function _delegateAllCallsToInternalImplementation(builder) {
     var self = this;
-    var implementation = builder._buildImplementationObject();
+    var implementation = builder.buildImplementationObject();
 
-    _forEachAttribute(builder.public, _delegateCallToImplementationObject);
+    _forEachKeyValue(builder.public, function (key, value) {
+      var attributeConfig = {
+        enumerable: true,
+        configurable: false
+      };
 
-    function _delegateCallToImplementationObject(key, value) {
       if (typeof value === 'function') {
-        self[key] = function() {
-          return implementation[key].apply(implementation, arguments);
+        attributeConfig.get = function() {
+          return implementation[key].bind(implementation);
         };
       } else {
-        Object.defineProperty(self, key, {
-          get: function() { return implementation[key]; },
-          set: function(value) { implementation[key] = value; },
-          enumerable: true,
-          configurable: false
-        });
+        attributeConfig.get = function() { return implementation[key]; };
+        attributeConfig.set = function(value) { implementation[key] = value; };
       }
-    };
+
+      Object.defineProperty(self, key, attributeConfig);
+    });
   }
 
-  function _forEachAttribute(obj, fn) {
+  function _forEachKeyValue(obj, fn) {
     for (var key in obj) {
       fn(key, obj[key]);
     }
